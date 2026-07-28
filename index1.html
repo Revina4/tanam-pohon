@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Tanam Pohon</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #a0e0ff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Wrapper Utuh Atas */
+        .top-navbar-wrapper {
+            width: 90%;
+            max-width: 800px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .external-logos {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .external-logo-img {
+            width: 45px;
+            height: 45px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            background: #fff;
+        }
+
+        header {
+            flex-grow: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stats-panel {
+            display: flex;
+            gap: 8px;
+        }
+
+        .stat-box {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 13px;
+            border: 1px solid #a5d6a7;
+        }
+
+        .game-container {
+            width: 90%;
+            max-width: 800px;
+            padding: 15px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            flex-grow: 1;
+        }
+
+        .weather-banner {
+            width: 100%;
+            padding: 8px;
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+            animation: flash 1s infinite alternate;
+        }
+
+        @keyframes flash {
+            from { opacity: 0.7; }
+            to { opacity: 1; background: #f8d7da; color: #721c24; }
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 500px) {
+            .grid-container {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+        }
+
+        .plot {
+            background: #8d6e63;
+            border: 4px solid #5d4037;
+            border-radius: 12px;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px;
+            position: relative;
+            cursor: pointer;
+            box-shadow: inset 0 4px 8px rgba(0,0,0,0.3), 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.1s;
+        }
+
+        .plot:hover { transform: translateY(-2px); }
+        .plot:active { transform: scale(0.96); }
+
+        .plot.locked {
+            background: #4e342e;
+            border-color: #3e2723;
+            opacity: 0.85;
+        }
+
+        .lock-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #ffd54f;
+            text-align: center;
+            gap: 4px;
+        }
+
+        .lock-icon { font-size: 28px; }
+
+        .lock-price {
+            font-size: 11px;
+            font-weight: bold;
+            background: rgba(0,0,0,0.4);
+            padding: 2px 6px;
+            border-radius: 10px;
+            color: #fff;
+        }
+
+        .plot-soil {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .empty-text {
+            color: #f5f5f5;
+            font-weight: bold;
+            font-size: 12px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+        }
+
+        .tree-visual {
+            font-size: 36px;
+            position: relative;
+            z-index: 2;
+            transition: transform 0.3s;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 2px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 100%;
+            background: #4caf50;
+            transition: width 0.3s linear, background-color 0.3s;
+        }
+
+        .badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: #ff5252;
+            color: white;
+            font-size: 12px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            z-index: 10;
+            animation: bounce 0.6s infinite alternate;
+        }
+
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-4px); }
+        }
+
+        .shield-icon {
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            background: #2196f3;
+            color: white;
+            font-size: 11px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            max-width: 320px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 3px 0 #2e7d32;
+        }
+
+        .btn:active { transform: translateY(3px); box-shadow: none; }
+        .btn-water { background: #2196f3; box-shadow: 0 3px 0 #1565c0; }
+        .btn-pest { background: #ff9800; box-shadow: 0 3px 0 #e65100; }
+        .btn-f1 { background: #9c27b0; box-shadow: 0 3px 0 #6a1b9a; }
+        .btn-f2 { background: #8bc34a; box-shadow: 0 3px 0 #558b2f; }
+        .btn-shield { background: #607d8b; box-shadow: 0 3px 0 #37474f; }
+        .btn-close { background: #e53935; box-shadow: 0 3px 0 #b71c1c; grid-column: span 2; margin-top: 5px; }
+
+        .btn:disabled {
+            background: #ccc !important;
+            box-shadow: none !important;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .floating-text {
+            position: absolute;
+            font-weight: bold;
+            font-size: 14px;
+            pointer-events: none;
+            animation: floatUp 1s forwards;
+            z-index: 50;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-30px); }
+        }
+
+        .audio-btn {
+            background: #ffffff;
+            border: 2px solid #4caf50;
+            border-radius: 20px;
+            padding: 5px 10px;
+            font-size: 11px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 300;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .overlay h1 { font-size: 36px; margin-bottom: 10px; color: #ffeb3b; }
+        .overlay p { font-size: 18px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <!-- ELEMEN AUDIO BACKSOUND INTERNET SUARA CERIA/GAME SANTAI -->
+    <audio id="bgMusic" loop preload="auto">
+        <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="top-navbar-wrapper">
+        <div class="external-logos">
+            <img src="smk.jpeg" alt="SMK 1 Sanden" class="external-logo-img">
+            <img src="rpl.jpeg" alt="RPL" class="external-logo-img">
+            <img src="logoku.jpeg" alt="Revina Game" class="external-logo-img">
+            <img src="mk.jpeg" alt="onesad" class="external-logo-img">
+            <img src="mk2.jpeg" alt="" class="external-logo-img">
+        </div>
+
+        <header>
+            <div class="header-left">
+                <button class="audio-btn" id="audioToggle" onclick="toggleAudio()">🔊 Musik: ON</button>
+            </div>
+            <div class="stats-panel">
+                <div class="stat-box">Poin: <span id="scoreDisplay">0</span></div>
+                <div class="stat-box">Level: <span id="levelDisplay">1</span>/3</div>
+            </div>
+        </header>
+    </div>
+
+    <div class="game-container">
+        <div id="weatherBanner" class="weather-banner">⚠️ BADAI DATANG! Pohon tanpa Pelindung akan Rusak/Mati!</div>
+        
+        <div class="grid-container" id="gridContainer">
+            <!-- 12 Plot Lahan -->
+        </div>
+    </div>
+
+    <!-- Action Modal -->
+    <div id="actionModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Perawatan Pohon</h3>
+            <p id="modalStatus" style="font-size: 12px; color: #666; margin-top: 4px;"></p>
+            <div class="action-grid">
+                <button class="btn btn-water" onclick="performAction('water')">💧 Siram<small>(+5 Poin)</small></button>
+                <button class="btn btn-pest" id="btnPest" onclick="performAction('pest')">🐛 Usir Hama<small>(+10 Poin)</small></button>
+                <button class="btn btn-f1" onclick="performAction('fertilizer1')">🧪 Pupuk Organik<small>(+5 Poin)</small></button>
+                <button class="btn btn-f2" onclick="performAction('fertilizer2')">🧪 Pupuk NPK<small>(+5 Poin)</small></button>
+                <button class="btn btn-shield" style="grid-column: span 2;" onclick="performAction('shield')">🛡️ Pasang Pelindung Badai</button>
+                <button class="btn btn-close" onclick="closeModal()">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="winOverlay" class="overlay">
+        <h1>🎉 TAMAT! 🎉</h1>
+        <p>Selamat! Anda telah berhasil menyelesaikan Level 3!</p>
+        <p>Total Skor Anda: <span id="finalScore">0</span></p>
+        <button class="btn" style="font-size: 18px; padding: 12px 24px;" onclick="restartGame()">Main Lagi</button>
+    </div>
+
+    <script>
+        const LEVEL_TARGETS = { 1: 150, 2: 350, 3: 650 };
+        const STAGE_TIMES = { seed: 10, sprout: 30, mature: 50, big: 70 };
+        const UNLOCK_COST = 50; 
+
+        let score = 0;
+        let level = 1;
+        
+        let plotStates = Array.from({ length: 12 }, (_, i) => ({
+            unlocked: i < 1 
+        }));
+
+        let plots = new Array(12).fill(null); 
+        let selectedPlotIndex = null;
+        let isAudioActive = true; 
+        let stormActive = false;
+
+        // --- SISTEM KONTROL MUSIK & AUDIO ---
+        const bgMusic = document.getElementById('bgMusic');
+        bgMusic.volume = 0.3; // Volume musik disetel di 30% agar tidak terlalu keras
+
+        function playMusic() {
+            if (isAudioActive) {
+                bgMusic.play().catch(e => {
+                    console.log("Menunggu interaksi pengguna untuk memutar audio.");
+                });
+            }
+        }
+
+        function toggleAudio() {
+            isAudioActive = !isAudioActive;
+            const btn = document.getElementById('audioToggle');
+            if (isAudioActive) {
+                btn.innerText = "🔊 Musik: ON";
+                bgMusic.play();
+            } else {
+                btn.innerText = "🔇 Musik: OFF";
+                bgMusic.pause();
+            }
+        }
+
+        function initGame() {
+            const grid = document.getElementById('gridContainer');
+            grid.innerHTML = ''; 
+
+            for (let i = 0; i < 12; i++) {
+                const plotEl = document.createElement('div');
+                plotEl.className = 'plot';
+                plotEl.id = `plot-${i}`;
+                plotEl.onclick = () => handlePlotClick(i);
+                grid.appendChild(plotEl);
+            }
+
+            updateGridUI();
+            setInterval(gameLoop, 1000);
+            scheduleStorm();
+
+            // Memastikan musik otomatis berputar saat user mengeklik/menyentuh layar pertama kali
+            const startMusicOnUserInteraction = () => {
+                playMusic();
+                window.removeEventListener('click', startMusicOnUserInteraction);
+                window.removeEventListener('touchstart', startMusicOnUserInteraction);
+            };
+            window.addEventListener('click', startMusicOnUserInteraction);
+            window.addEventListener('touchstart', startMusicOnUserInteraction);
+        }
+
+        function gameLoop() {
+            plots.forEach((tree, idx) => {
+                if (!tree || tree.dead) return;
+
+                tree.waterLevel -= 2; 
+                if (tree.pest) tree.health -= 5;
+                if (tree.waterLevel <= 0) tree.health -= 4;
+
+                if (tree.health <= 0) {
+                    killTree(idx, "Pohon mati!");
+                    return;
+                }
+
+                if (!tree.pest && Math.random() < 0.08) {
+                    const pests = ['🪲 Tikus', '🐛 Ulat', '🪰 Kutu Daun'];
+                    tree.pest = pests[Math.floor(Math.random() * pests.length)];
+                }
+
+                tree.timer++;
+                checkGrowth(tree, idx);
+            });
+
+            updateGridUI();
+        }
+
+        function checkGrowth(tree, idx) {
+            let targetTime = STAGE_TIMES[tree.stage];
+
+            if (tree.timer >= targetTime) {
+                tree.timer = 0;
+                if (tree.stage === 'seed') {
+                    tree.stage = 'sprout';
+                    addScore(20, idx, "Tunas! +20");
+                } else if (tree.stage === 'sprout') {
+                    tree.stage = 'mature';
+                    addScore(30, idx, "Dewasa! +30");
+                } else if (tree.stage === 'mature') {
+                    tree.stage = 'big';
+                    addScore(40, idx, "Pohon Besar! +40");
+                }
+            }
+        }
+
+        function killTree(idx, reason) {
+            if (plots[idx] && !plots[idx].dead) {
+                plots[idx].dead = true;
+                addScore(-15, idx, "Mati! -15");
+            }
+        }
+
+        function handlePlotClick(index) {
+            playMusic();
+            
+            if (!plotStates[index].unlocked) {
+                if (score >= UNLOCK_COST) {
+                    if (confirm(`Buka lahan ini seharga ${UNLOCK_COST} Poin?`)) {
+                        score -= UNLOCK_COST;
+                        plotStates[index].unlocked = true;
+                        document.getElementById('scoreDisplay').innerText = score;
+                        showFloatingText("🔓 Terbuka!", index, "#ffd54f");
+                        updateGridUI();
+                    }
+                } else {
+                    alert(`Butuh ${UNLOCK_COST} Poin untuk membuka lahan ini! Poin kamu kurang.`);
+                }
+                return;
+            }
+
+            selectedPlotIndex = index;
+            const tree = plots[index];
+
+            if (!tree) {
+                plots[index] = {
+                    stage: 'seed',
+                    timer: 0,
+                    health: 100,
+                    waterLevel: 100,
+                    pest: null,
+                    shielded: false,
+                    dead: false
+                };
+                addScore(10, index, "Bibit! +10");
+                updateGridUI();
+            } else if (tree.dead) {
+                plots[index] = null;
+                updateGridUI();
+            } else {
+                openModal(tree);
+            }
+        }
+
+        function openModal(tree) {
+            const modal = document.getElementById('actionModal');
+            const title = document.getElementById('modalTitle');
+            const status = document.getElementById('modalStatus');
+            const btnPest = document.getElementById('btnPest');
+
+            const stageNames = { seed: 'Bibit', sprout: 'Tunas', mature: 'Pohon Dewasa', big: 'Pohon Besar' };
+            title.innerText = `Rawat ${stageNames[tree.stage]}`;
+            
+            status.innerText = `Air: ${tree.waterLevel}% | Kesehatan: ${tree.health}%` + 
+                               (tree.pest ? ` | ⚠️ Ada ${tree.pest}!` : '');
+
+            btnPest.disabled = !tree.pest;
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('actionModal').style.display = 'none';
+        }
+
+        function performAction(action) {
+            if (selectedPlotIndex === null) return;
+            const tree = plots[selectedPlotIndex];
+            if (!tree || tree.dead) { closeModal(); return; }
+
+            if (action === 'water') {
+                tree.waterLevel = 100;
+                tree.health = Math.min(100, tree.health + 10);
+                tree.timer += 2;
+                addScore(5, selectedPlotIndex, "Disiram! +5");
+            } else if (action === 'pest') {
+                if (tree.pest) {
+                    tree.pest = null;
+                    addScore(10, selectedPlotIndex, "Hama Kabur! +10");
+                }
+            } else if (action === 'fertilizer1' || action === 'fertilizer2') {
+                tree.health = Math.min(100, tree.health + 20);
+                tree.timer += 4;
+                addScore(5, selectedPlotIndex, "Dipupuk! +5");
+            } else if (action === 'shield') {
+                tree.shielded = true;
+                showFloatingText("🛡️ Terlindungi!", selectedPlotIndex, "#2196f3");
+            }
+
+            updateGridUI();
+            closeModal();
+        }
+
+        function scheduleStorm() {
+            const nextStormTime = Math.floor(Math.random() * 15000) + 25000;
+            setTimeout(() => {
+                triggerStorm();
+                scheduleStorm();
+            }, nextStormTime);
+        }
+
+        function triggerStorm() {
+            stormActive = true;
+            const banner = document.getElementById('weatherBanner');
+            banner.style.display = 'block';
+
+            setTimeout(() => {
+                plots.forEach((tree, idx) => {
+                    if (tree && !tree.dead) {
+                        if (!tree.shielded) {
+                            tree.health -= 50;
+                            if (tree.health <= 0) killTree(idx, "Hancur!");
+                        } else {
+                            tree.shielded = false;
+                        }
+                    }
+                });
+                stormActive = false;
+                banner.style.display = 'none';
+                updateGridUI();
+            }, 3000);
+        }
+
+        function addScore(amount, plotIndex, text) {
+            score = Math.max(0, score + amount);
+            document.getElementById('scoreDisplay').innerText = score;
+
+            if (plotIndex !== undefined && text) {
+                const color = amount > 0 ? '#2e7d32' : '#d32f2f';
+                showFloatingText(text, plotIndex, color);
+            }
+
+            if (level < 3 && score >= LEVEL_TARGETS[level]) {
+                level++;
+                document.getElementById('levelDisplay').innerText = level;
+                alert(`🎉 Selamat! Anda Naik ke Level ${level}!`);
+            } else if (level === 3 && score >= LEVEL_TARGETS[3]) {
+                document.getElementById('finalScore').innerText = score;
+                document.getElementById('winOverlay').style.display = 'flex';
+            }
+        }
+
+        function showFloatingText(text, plotIndex, color) {
+            const plotEl = document.getElementById(`plot-${plotIndex}`);
+            if (!plotEl) return;
+
+            const el = document.createElement('div');
+            el.className = 'floating-text';
+            el.innerText = text;
+            el.style.color = color;
+            el.style.left = '5%';
+            el.style.top = '35%';
+
+            plotEl.appendChild(el);
+            setTimeout(() => el.remove(), 1000);
+        }
+
+        function updateGridUI() {
+            for (let i = 0; i < 12; i++) {
+                const plotEl = document.getElementById(`plot-${i}`);
+                if (!plotEl) continue;
+
+                if (!plotStates[i].unlocked) {
+                    plotEl.className = 'plot locked';
+                    plotEl.innerHTML = `
+                        <div class="lock-container">
+                            <div class="lock-icon">🔒</div>
+                            <div class="lock-price">${UNLOCK_COST} Poin</div>
+                        </div>
+                    `;
+                    continue;
+                }
+
+                const tree = plots[i];
+                plotEl.className = 'plot';
+
+                if (!tree) {
+                    plotEl.innerHTML = `<div class="empty-text">Klik untuk<br>Tanam Bibit</div>`;
+                } else if (tree.dead) {
+                    plotEl.innerHTML = `
+                        <div class="tree-visual">🥀</div>
+                        <div class="empty-text" style="color: #ff8a80;">Pohon Mati<br>(Bersihkan)</div>
+                    `;
+                } else {
+                    const icons = { seed: '🌱', sprout: '🌿', mature: '🌳', big: '🌲' };
+                    let badgeHTML = tree.pest ? `<div class="badge">🐛</div>` : '';
+                    let shieldHTML = tree.shielded ? `<div class="shield-icon">🛡️</div>` : '';
+
+                    plotEl.innerHTML = `
+                        ${badgeHTML}
+                        ${shieldHTML}
+                        <div class="plot-soil">
+                            <div class="tree-visual">${icons[tree.stage]}</div>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" style="width: ${tree.health}%; background-color: ${tree.health < 40 ? '#f44336' : '#4caf50'};"></div>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        function restartGame() {
+            score = 0;
+            level = 1;
+            plots = new Array(12).fill(null);
+            plotStates = Array.from({ length: 12 }, (_, i) => ({ unlocked: i < 1 }));
+            document.getElementById('scoreDisplay').innerText = score;
+            document.getElementById('levelDisplay').innerText = level;
+            document.getElementById('winOverlay').style.display = 'none';
+            updateGridUI();
+        }
+
+        window.onload = initGame;
+    </script>
+</body>
+</html>
